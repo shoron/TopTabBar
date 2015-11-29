@@ -13,7 +13,7 @@ static const CGFloat kPraiseAndThanksButtonWidth = 74.0f;
 static const CGFloat kPrivateLetterButtonWidth = 38.0f;
 static const CGFloat kButtonHorizontalMargin = 100.0f;
 static NSString *kObserverKeyPath = @"contentOffset";
-static const NSTimeInterval kAnimationTimeInterval = 0.5;
+static const NSTimeInterval kAnimationTimeInterval = 0.3;
 
 @interface ViewController ()
 
@@ -40,20 +40,50 @@ static const NSTimeInterval kAnimationTimeInterval = 0.5;
 #pragma mark - Button Handler
 
 - (IBAction)notificationButtonHandler:(id)sender {
-    [self scrollSliderWithHorizontalMargin:0 sliderWidth:kNotificationButtonWidth];
+
+    [self removeObserVerForScrollView];
+    
+    [self scrollSliderWithHorizontalMargin:0 sliderWidth:kNotificationButtonWidth timeInterval:kAnimationTimeInterval];
+    [self scrollScrollViewWithContentOffSet:CGPointMake(0, 0) timeInterval:kAnimationTimeInterval];
+    
+    [UIView animateWithDuration:kAnimationTimeInterval animations:^{
+        [self.view layoutIfNeeded];
+    } completion:^(BOOL finished) {
+        [self addObserVerForScrollView];
+    }];
 }
 
 - (IBAction)praiseAndThanksButtonHandler:(id)sender {
-    [self scrollSliderWithHorizontalMargin:kButtonHorizontalMargin sliderWidth:kPraiseAndThanksButtonWidth];
+    [self removeObserVerForScrollView];
+    
+    [self scrollSliderWithHorizontalMargin:kButtonHorizontalMargin sliderWidth:kPraiseAndThanksButtonWidth timeInterval:kAnimationTimeInterval];
+    [self scrollScrollViewWithContentOffSet:CGPointMake(self.view.bounds.size.width, 0) timeInterval:kAnimationTimeInterval];
+    [UIView animateWithDuration:kAnimationTimeInterval animations:^{
+        [self.view layoutIfNeeded];
+    } completion:^(BOOL finished) {
+        [self addObserVerForScrollView];
+    }];
 }
 
 - (IBAction)privateLetterButtonHandler:(id)sender {
-    [self scrollSliderWithHorizontalMargin:kButtonHorizontalMargin * 2 sliderWidth:kPrivateLetterButtonWidth];
+    [self removeObserVerForScrollView];
+    
+    [self scrollSliderWithHorizontalMargin:kButtonHorizontalMargin * 2 sliderWidth:kPrivateLetterButtonWidth timeInterval:kAnimationTimeInterval];
+    [self scrollScrollViewWithContentOffSet:CGPointMake(self.view.bounds.size.width * 2, 0) timeInterval:kAnimationTimeInterval];
+    [UIView animateWithDuration:kAnimationTimeInterval animations:^{
+        [self.view layoutIfNeeded];
+    } completion:^(BOOL finished) {
+        [self addObserVerForScrollView];
+    }];
+}
+
+- (void)scrollScrollViewWithContentOffSet:(CGPoint)contentOffSet timeInterval:(NSTimeInterval)timeInterval {
+    [UIView animateWithDuration:timeInterval animations:^{
+        [self.scrollView setContentOffset:contentOffSet];
+    }];
 }
 
 #pragma mark - KVO
-
-
 
 - (void)addObserVerForScrollView {
     [self.scrollView addObserver:self forKeyPath:kObserverKeyPath options:NSKeyValueObservingOptionNew context:nil];
@@ -66,7 +96,7 @@ static const NSTimeInterval kAnimationTimeInterval = 0.5;
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {
     if ([keyPath isEqualToString:kObserverKeyPath]) {
         CGPoint contentOffset = [[object valueForKey:keyPath] CGPointValue];
-        [self scrollSliderWithHorizontalMargin:[self sliderViewCenterXConstraintConstantWithScrollViewContentOffSet:contentOffset] sliderWidth:[self sliderWidthWithScrollViewContentOffSet:contentOffset]];
+        [self scrollSliderWithHorizontalMargin:[self sliderViewCenterXConstraintConstantWithScrollViewContentOffSet:contentOffset] sliderWidth:[self sliderWidthWithScrollViewContentOffSet:contentOffset] timeInterval:0.01];
     }
 }
 
@@ -94,9 +124,8 @@ static const NSTimeInterval kAnimationTimeInterval = 0.5;
     }
 }
 
-- (void)scrollSliderWithHorizontalMargin:(CGFloat)horizontalMargin sliderWidth:(CGFloat)sliderWidth {
-    NSLog(@"horizontalMargin And Width ===== (%f, %f)",horizontalMargin,sliderWidth);
-    [UIView animateWithDuration:kAnimationTimeInterval animations:^{
+- (void)scrollSliderWithHorizontalMargin:(CGFloat)horizontalMargin sliderWidth:(CGFloat)sliderWidth timeInterval:(NSTimeInterval)timeInterval {
+    [UIView animateWithDuration:timeInterval animations:^{
         self.sliderViewCenterXConstraint.constant = horizontalMargin;
         self.sliderViewWidthConstraint.constant = sliderWidth;
     }];
